@@ -7,6 +7,7 @@ import me.junbyoung.UserService.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -22,6 +23,9 @@ public class UserService implements UserDetailsService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private KafkaTemplate<String, Long> kafkaTemplate;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -47,6 +51,13 @@ public class UserService implements UserDetailsService {
     }
 
     public void deleteUser(long id) {
-        userRepository.deleteById(id);
+        kafkaTemplate.send("user-events", id)
+                .thenAccept(result -> {
+                    userRepository.deleteById(id);
+                })
+                .exceptionally(ex -> {
+                    LOGGER.warn("Failed to send message: {}", ex.getMessage());
+                    return null;
+                });
     }
 }
