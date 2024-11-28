@@ -45,8 +45,18 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	testImplementation 'com.h2database:h2'
+	testImplementation 'org.mockito:mockito-core'
+	testImplementation 'org.springframework.kafka:spring-kafka-test'
 }
 
+configurations {
+	testImplementation {
+		exclude group: 'org.springframework.cloud', module: 'spring-cloud-starter-config'
+		exclude group: 'org.springframework.cloud', module: 'spring-cloud-starter-netflix-eureka-client'
+		exclude group: 'org.springframework.cloud', module: 'spring-cloud-starter-loadbalancer'
+	}
+}
 
 dependencyManagement {
 	imports {
