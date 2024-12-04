@@ -43,6 +43,14 @@ Gateway Server와 공유하는 비밀키로 JWT 토큰을 발행하여 사용자
     "password": "password123"
   }
 
+- **응답 본문**:
+
+   ```json
+  {
+    "token": "<JWT 토큰>",
+    "tokenType": "Bearer"
+  }
+
 ### **사용자 정보조회**
 
 - **URI**: `POST /api/users/me`
@@ -50,6 +58,16 @@ Gateway Server와 공유하는 비밀키로 JWT 토큰을 발행하여 사용자
 
     ```http
     Authorization: Bearer <JWT 토큰>
+
+- **응답 본문**:
+
+  ```json
+  {
+    "id" : 1,
+    "name": "홍길동",
+    "email": "user@example.com",
+    "createdAt": "<생성시간>"
+  }
 
 ### **사용자 삭제**
 
