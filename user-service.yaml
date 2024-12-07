@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-service
+  template:
+    metadata:
+      labels:
+        app: user-service
+    spec:
+      initContainers:
+      - name: wait-for-db
+        image: busybox
+        command: ['sh', '-c', 'until nc -z user-service-database 5432; do echo waiting for db; sleep 1; done;']
+      - name: wait-for-config-server
+        image: busybox
+        command: ['sh', '-c', 'until wget -qO- http://config-server:8888/actuator/health/readiness; do echo waiting for config-server; sleep 1; done;']     
+      - name: wait-for-eureka-server
+        image: busybox
+        command: ['sh', '-c', 'until wget -qO- http://eureka-server:8761/actuator/health/readiness; do echo waiting for eureka-server; sleep 1; done;']
+      containers:
+      - name: user-service
+        image: junbyoung/user-service:0.0.1        
+        ports:
+        - containerPort: 8080
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: 8080
+          initialDelaySeconds: 60
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: 8080
+          initialDelaySeconds: 15
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+spec:
+  selector:
+    app: user-service
+  ports:
+  - port: 8080
+    targetPort: 8080
